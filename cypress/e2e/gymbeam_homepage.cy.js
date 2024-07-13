@@ -85,7 +85,7 @@ describe('GymBeam homepage', () => {
 
     // Test that new item is displayed on homepage as first
     cy.get('@firstFitnessItem').then(() => {
-      expect(fitnessItem).not.to.equal(initialPromoItem, 'First promotion item was change');
+      expect(fitnessItem).not.to.equal(initialPromoItem, 'First promotion item was changed');
       expect(fitnessItem).to.equal(newPromoItem);
     });
   });
