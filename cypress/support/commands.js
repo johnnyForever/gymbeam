@@ -23,3 +23,16 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+Cypress.Commands.add('getNameOfFirstPromotionItem', () => {
+    cy.get('.product-items .product-item', { timeout: 15000 }).first().within(() => {
+        cy.get('.product-item-click')
+            .invoke('attr', 'title')
+            .then((title) => {
+                const firstPromoItem = title.split('/').pop();
+                cy.log('Name of first promotion item:', firstPromoItem);
+                cy.wrap(firstPromoItem).as('firstPromoItem');
+            });
+    });
+    return cy.get('@firstPromoItem');
+});

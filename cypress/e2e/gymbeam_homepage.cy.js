@@ -10,16 +10,22 @@ describe('GymBeam homepage', () => {
   let initialPromoItem;
   let newPromoItem;
 
-  it('Position of last visited product', () => {
+  it('Test of: Position of last visited product', () => {
 
     cy.intercept({
       method: 'GET',
       url: '/rest/gymbeamsk/V1/promotion-products*',
     }).as('getPromotionProducts');
 
-    cy.intercept('/deliverydate').as('deliverydate');
+    cy.intercept({
+      method: 'GET',
+      url: '/deliverydate',
+    }).as('deliverydate');
 
-    cy.intercept('/fitness-oblecenie').as('fitnessClothes');
+    cy.intercept({
+      method: 'GET',
+      url: '/fitness-oblecenie',
+    }).as('fitnessClothes');
 
     cy.visit('/');
 
@@ -27,6 +33,7 @@ describe('GymBeam homepage', () => {
       expect(interception.response.statusCode).to.eq(200);
     });
 
+    // Handle Cookie modal window
     cy.get('#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll', { timeout: 20000 })
       .should('be.visible')
       .click()
@@ -36,14 +43,9 @@ describe('GymBeam homepage', () => {
 
     cy.scrollTo(0, 500);
 
-    // Save name of first displayed promotion
-    cy.get('.product-items .product-item', { timeout: 15000 }).first().within(() => {
-      cy.get('.product-item-click')
-        .invoke('attr', 'title')
-        .then((title) => {
-          initialPromoItem = title.split('/').pop();
-          cy.log('Name of first product:', initialPromoItem);
-        });
+    // Save name of initial promotion item
+    cy.getNameOfFirstPromotionItem().then((firstPromoItem) => {
+      initialPromoItem = firstPromoItem;
     });
 
     // Open sport clothes 
@@ -55,13 +57,13 @@ describe('GymBeam homepage', () => {
       expect(interception.response.statusCode).to.eq(200);
     });
 
-    // Open detail of first displayed fitness product
-    cy.get('.product-item-click').eq(0).as('firstItem')
+    // Open detail of first displayed fitness product and save its name
+    cy.get('.product-item-click').eq(0).as('firstFitnessItem')
       .invoke('attr', 'title')
       .then((title) => {
         fitnessItem = title.split('/').pop();
         cy.log('Name of fitness clothe:', fitnessItem);
-        cy.get('@firstItem').click()
+        cy.get('@firstFitnessItem').click();
       });
 
     cy.wait('@deliverydate', { timeout: 20000 }).then((interception) => {
@@ -76,19 +78,14 @@ describe('GymBeam homepage', () => {
 
     cy.scrollTo(0, 500);
 
-    // Save name of first displayed promotion
-    cy.get('.product-items .product-item', { timeout: 15000 }).first().within(() => {
-      cy.get('.product-item-click')
-        .invoke('attr', 'title')
-        .then((title) => {
-          newPromoItem = title.split('/').pop();
-          cy.log('Name of first product:', newPromoItem);
-        });
+    // Save name of new promotion item
+    cy.getNameOfFirstPromotionItem().then((firstPromoItem) => {
+      newPromoItem = firstPromoItem;
     });
 
-    // Test that new item is displayed on dashboard as first
-    cy.get('@firstItem').then(() => {
-      expect(fitnessItem).not.to.equal(initialPromoItem);
+    // Test that new item is displayed on homepage as first
+    cy.get('@firstFitnessItem').then(() => {
+      expect(fitnessItem).not.to.equal(initialPromoItem, 'First promotion item was change');
       expect(fitnessItem).to.equal(newPromoItem);
     });
   });
